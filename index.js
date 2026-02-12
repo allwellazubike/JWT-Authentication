@@ -142,6 +142,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Server is running!' });
 });
 
+// start server here 
 const PORT = 2000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
