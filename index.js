@@ -11,6 +11,7 @@ app.use(express.json());
 // for frontend requests 
 app.use(cors());
 
+// dummy code for the user database, should be replaced with DB 
 const users = [
   {
     id: 1,
@@ -136,7 +137,7 @@ app.post('/login', (req, res) => {
   }
 });
 
-// route to test serve
+// route to test server
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running!' });
 });
