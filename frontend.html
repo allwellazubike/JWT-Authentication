@@ -1,0 +1,91 @@
+<!-- frontend.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JWT Test</title>
+</head>
+<body>
+    <h1>JWT Authentication Test</h1>
+    
+    <div style="border: 1px solid black; padding: 20px; margin: 10px;">
+        <h2>Register</h2>
+        <input type="email" id="regEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="regPassword" placeholder="Password" value="password123">
+        <input type="text" id="regName" placeholder="Name" value="Test User">
+        <button onclick="register()">Register</button>
+        <pre id="regResult"></pre>
+    </div>
+    
+    <div style="border: 1px solid black; padding: 20px; margin: 10px;">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="password123">
+        <button onclick="login()">Login</button>
+        <pre id="loginResult"></pre>
+    </div>
+    
+    <div style="border: 1px solid black; padding: 20px; margin: 10px;">
+        <h2>Protected Dashboard</h2>
+        <button onclick="getDashboard()">Get Dashboard</button>
+        <pre id="dashboardResult"></pre>
+    </div>
+
+    <script>
+        // This is where our token will be stored
+        let currentToken = null;
+        
+        async function register() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const name = document.getElementById('regName').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name })
+                });
+                
+                const data = await response.json();
+                document.getElementById('regResult').textContent = 
+                    JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('regResult').textContent = 
+                    'Error: ' + error.message;
+            }
+        }
+        
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                document.getElementById('loginResult').textContent = 
+                    JSON.stringify(data, null, 2);
+                
+                // Save the token if login successful
+                if (data.token) {
+                    currentToken = data.token;
+                    console.log('Token saved:', currentToken);
+                }
+            } catch (error) {
+                document.getElementById('loginResult').textContent = 
+                    'Error: ' + error.message;
+            }
+        }
+        
+        async function getDashboard() {
+            // We'll implement this next!
+            document.getElementById('dashboardResult').textContent = 
+                'Waiting for dashboard endpoint...';
+        }
+    </script>
+</body>
+</html>
