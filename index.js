@@ -136,7 +136,7 @@ app.post('/login', (req, res) => {
   }
 });
 
-// route to test server
+// route to test serve
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running!' });
 });
