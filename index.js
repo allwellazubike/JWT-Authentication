@@ -147,3 +147,74 @@ const PORT = 2000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// Add this to index.js
+
+// MIDDLEWARE: This function checks if the token is valid
+// Middleware runs BEFORE your route handler
+const authenticateToken = (req, res, next) => {
+  console.log('Authenticating request...');
+  
+  // 1. Get the token from the Authorization header
+  // The header should look like: "Authorization: Bearer eyJhbGc..."
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  console.log('Token received:', token ? 'Yes' : 'No');
+  
+  // 2. If no token, deny access
+  if (!token) {
+    return res.status(401).json({ 
+      error: 'Access denied. No token provided.' 
+    });
+  }
+  
+  // 3. Verify the token
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Token verified. User:', decoded.email);
+    
+    // 4. Attach the user info to the request object
+    // Now our route handler can access req.user
+    req.user = decoded;
+    
+    // 5. Continue to the route handler
+    next();
+    
+  } catch (error) {
+    console.log('Token verification failed:', error.message);
+    
+    // Different errors for different situations
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+};
+
+// PROTECTED ROUTE: Only accessible with valid token
+app.get('/dashboard', authenticateToken, (req, res) => {
+  // We only get here if authenticateToken called next()
+  // and req.user contains our decoded token data
+  
+  res.json({
+    message: 'Welcome to your dashboard!',
+    user: req.user,  // This came from the token
+    data: {
+      stats: {
+        gamesPlayed: 42,
+        winRate: '75%',
+        accountCreated: '2024-01-01'
+      }
+    }
+  });
+});
+
+// PUBLIC ROUTE: Anyone can access
+app.get('/public-info', (req, res) => {
+  res.json({
+    message: 'This is public information',
+    features: ['Login', 'Register', 'About Us']
+  });
+});
