@@ -81,11 +81,30 @@
             }
         }
         
-        async function getDashboard() {
-            // We'll implement this next!
-            document.getElementById('dashboardResult').textContent = 
-                'Waiting for dashboard endpoint...';
-        }
+// Replace the getDashboard function in your HTML
+async function getDashboard() {
+    if (!currentToken) {
+        document.getElementById('dashboardResult').textContent = 
+            'Please login first!';
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost:2000/dashboard', {
+            method: 'GET',
+            headers: { 
+                'Authorization': `Bearer ${currentToken}`  // Send token here!
+            }
+        });
+        
+        const data = await response.json();
+        document.getElementById('dashboardResult').textContent = 
+            JSON.stringify(data, null, 2);
+    } catch (error) {
+        document.getElementById('dashboardResult').textContent = 
+            'Error: ' + error.message;
+    }
+}
     </script>
 </body>
 </html>
