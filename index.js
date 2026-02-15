@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const cors = require('cors');
 
@@ -7,7 +8,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(express.json());
-
+app.use(cookieParser());
 // for frontend requests 
 app.use(cors());
 
@@ -118,16 +119,31 @@ app.post('/login', (req, res) => {
       { expiresIn }              // When it expires
     );
     
-    // 6. Send the token back to the client
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 3600000
+    });
+
     res.json({
       message: 'Login successful',
-      token,                     // This is the JWT!
       user: {
-        id: user.id,
+        name: user.name,
         email: user.email,
-        name: user.name
+        id: user.id
       }
-    });
+    })
+    // 6. Send the token back to the client
+    // res.json({
+    //   message: 'Login successful',
+    //   token,                     // This is the JWT!
+    //   user: {
+    //     id: user.id,
+    //     email: user.email,
+    //     name: user.name
+    //   }
+    // });
     
   } catch (error) {
     console.error('Token creation error:', error);
@@ -150,46 +166,70 @@ app.listen(PORT, () => {
 
 // MIDDLEWARE: This function checks if the token is valid
 // Middleware runs BEFORE your route handler
+
+
+
+
 const authenticateToken = (req, res, next) => {
   console.log('Authenticating request...');
-  
-  // 1. Get the token from the Authorization header
-  // The header should look like: "Authorization: Bearer eyJhbGc..."
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  
-  console.log('Token received:', token ? 'Yes' : 'No');
-  
-  // 2. If no token, deny access
+
+  const token = req.cookies.token;
+
   if (!token) {
     return res.status(401).json({ 
       error: 'Access denied. No token provided.' 
     });
   }
-  
-  // 3. Verify the token
-  try {
+
+    try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Token verified. User:', decoded.email);
-    
-    // 4. Attach the user info to the request object
-    // Now our route handler can access req.user
     req.user = decoded;
-    
-    // 5. Continue to the route handler
     next();
-    
   } catch (error) {
-    console.log('Token verification failed:', error.message);
-    
-    // Different errors for different situations
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
-    }
-    
-    return res.status(403).json({ error: 'Invalid token' });
+    res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
+
+// const authenticateToken = (req, res, next) => {
+//   console.log('Authenticating request...');
+  
+//   // 1. Get the token from the Authorization header
+//   // The header should look like: "Authorization: Bearer eyJhbGc..."
+//   const authHeader = req.headers['authorization'];
+//   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+//   console.log('Token received:', token ? 'Yes' : 'No');
+  
+//   // 2. If no token, deny access
+//   if (!token) {
+//     return res.status(401).json({ 
+//       error: 'Access denied. No token provided.' 
+//     });
+//   }
+  
+//   // 3. Verify the token
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//     console.log('Token verified. User:', decoded.email);
+    
+//     // 4. Attach the user info to the request object
+//     // Now our route handler can access req.user
+//     req.user = decoded;
+    
+//     // 5. Continue to the route handler
+//     next();
+    
+//   } catch (error) {
+//     console.log('Token verification failed:', error.message);
+    
+//     // Different errors for different situations
+//     if (error.name === 'TokenExpiredError') {
+//       return res.status(401).json({ error: 'Token expired' });
+//     }
+    
+//     return res.status(403).json({ error: 'Invalid token' });
+//   }
+// };
 
 // PROTECTED ROUTE: Only accessible with valid token
 app.get('/dashboard', authenticateToken, (req, res) => {
