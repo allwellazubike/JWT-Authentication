@@ -21,8 +21,6 @@ const users = [
   }
 ];
 
-// Add this to index.js after the existing code
-// POST /register - Create a new user account
 
 app.post('/register', async (req, res) => {
   console.log('Registration request received:', req.body);
