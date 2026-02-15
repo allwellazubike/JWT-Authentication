@@ -100,11 +100,6 @@ app.post('/login', (req, res) => {
   
   // First, decide WHAT data to put in the token
   // This is called the "payload" - it's the data we want to carry
-  const payload = {
-    userId: user.id,      // We'll need this to identify the user
-    email: user.email,    // Maybe display on frontend
-    name: user.name       // Maybe display on frontend
-  };
   
   // Second, decide WHEN the token expires
   // This is very important for security!
@@ -114,9 +109,9 @@ app.post('/login', (req, res) => {
   // This creates the actual JWT string
   try {
     const token = jwt.sign(
-      payload,                    // What we're storing
-      process.env.JWT_SECRET,     // Our secret "stamp"
-      { expiresIn }              // When it expires
+      { userId: user.id, email: user.email},
+      process.env.JWT_SECRET,
+      { expiresIn } 
     );
     
     res.cookie('token', token, {
@@ -190,6 +185,7 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+
 // const authenticateToken = (req, res, next) => {
 //   console.log('Authenticating request...');
   
@@ -232,10 +228,10 @@ const authenticateToken = (req, res, next) => {
 // };
 
 // PROTECTED ROUTE: Only accessible with valid token
+
+
 app.get('/dashboard', authenticateToken, (req, res) => {
-  // We only get here if authenticateToken called next()
-  // and req.user contains our decoded token data
-  
+
   res.json({
     message: 'Welcome to your dashboard!',
     user: req.user,  // This came from the token
