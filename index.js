@@ -123,11 +123,7 @@ app.post('/login', (req, res) => {
 
     res.json({
       message: 'Login successful',
-      user: {
-        name: user.name,
-        email: user.email,
-        id: user.id
-      }
+      user: { id: user.id, email: user.email},
     })
     // 6. Send the token back to the client
     // res.json({
